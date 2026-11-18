@@ -1,114 +1,131 @@
-# 🍲 AI-Powered Food Waste Prediction System
+# 🍲 MessMind - Daily Mess Meal Logging Portal
 
-> **A Complete Web-Based Decision Support System for College Mess Operations**  
-> *Reduces mess food waste through predictive meal demand modeling, real-time consumption logging, and food waste analytics.*
-
----
-
-## 📌 Problem Statement
-In college hostels and institutions, mess operators face daily uncertainty regarding how many students will actually attend meals. Cooking too much leads to massive food and financial waste; cooking too little leaves students hungry. 
-
-### 💡 The Solution
-This software system leverages historical consumption trends, expected attendance, day of the week, meal type, and menu items to **forecast actual meal demand using machine learning (Random Forest Regression)**. 
-
-Mess administrators can:
-1. **Predict required meal portions** before cooking begins with a 5% kitchen safety buffer.
-2. **Log actual meals cooked vs. meals consumed** after dining hours.
-3. **Edit, update, and manage historical logs** with live recalculations.
-4. **Track food waste percentages and cost impacts** across days and menus via Chart.js.
-5. **Receive actionable human-verified surplus food advisories** for local NGO/donation outreach.
-6. **Monitor database connectivity and engine health** via `/api/health` and live dashboard indicator.
+> A simple, easy-to-use web portal for mess in-charges, caretakers, and kitchen staff to record daily meals, track portions served, and review past records.
 
 ---
 
-## 🖥️ Web Application Pages (UI/UX)
+## 📌 Overview
 
-| Page | URL Route | Description & Features |
-|:---|:---|:---|
-| **📊 Dashboard** | `/dashboard` or `/` | High-level KPI cards (Total Prepared, Consumed, Wasted, Waste %), Recent Activity table, and interactive Chart.js graphs. |
-| **📝 Daily Entry** | `/entry` | Kitchen log form for attendance, menu, prepared count, and actual consumption with real-time client-side waste calculations. |
-| **🔮 AI Prediction** | `/predict` | Connects directly to the trained Random Forest model. Displays predicted consumption, 5% buffer cook recommendation, heuristic ensemble uncertainty range, and recent forecast logs. |
-| **📈 Waste Analytics**| `/analytics` | In-depth waste trends, daily/weekly/monthly stats, menu-wise waste comparison bar chart, and meal session distribution. |
-| **🗂️ Historical Records**| `/records` | Searchable table of past mess records with 20-record pagination, date range filters, menu search, record editing (`/records/edit/<id>`), deletion, and CSV export. |
-| **🍲 Surplus Advisory**| `/surplus` | Flags batches with high unconsumed food (&ge; 20 portions) for physical safety inspection before coordinating with local NGOs. |
-| **🩺 Health & Diagnostics**| `/api/health` | REST endpoint reporting database connectivity, active engine, record counts, and sanitized connection URI. |
+**MessMind** helps college and hostel mess staff keep clear, organized records of daily meals without complicated technical tools. 
 
----
+Staff can quickly:
+1. **Record meals cooked and served** for Breakfast, Lunch, Snacks, and Dinner.
+2. **Track leftover food** through simple, automatic arithmetic (`meals prepared − meals served`).
+3. **Save ongoing meals** before dining concludes and fill in the served count later.
+4. **Search and filter past records** by date range, meal session, or menu item.
+5. **Download past records** as a clean CSV spreadsheet for office reporting.
 
-## 🗄️ Database Architecture: Dual-Database Governance
-
-The system uses **Flask-SQLAlchemy 3.1.1** and **PyMySQL**, supporting two operating modes with strict data consistency controls:
-
-1. **MySQL Mode (Primary Production Standard):**
-   - Configured via environment variables (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`) or direct `DATABASE_URL`.
-   - Passwords with special characters (`@`, `#`, `:`, `/`, `%`, `&`) are automatically URL-encoded via `urllib.parse.quote_plus`.
-   - Connection resilience with `pool_recycle=280` and `pool_pre_ping=True`.
-   - Full setup guide available in [database/MYSQL_SETUP.md](file:///c:/Users/LOQ/Desktop/IDT%203rd%20sem/database/MYSQL_SETUP.md).
-
-2. **SQLite Mode (Zero-Config Development):**
-   - Active for local development in `database/food_waste.db`.
-   - Requires zero external database installation for instant local testing.
-
-3. **Deterministic Failover Governance (Anti-Silent Failover):**
-   - **Production Mode:** MySQL is mandatory. If MySQL is unreachable, startup aborts immediately. SQLite fallback is strictly prohibited.
-   - **Development Mode:** `ALLOW_SQLITE_FALLBACK=false` by default. Startup halts with clear diagnostic steps if MySQL fails, preventing silent database switching. Controlled fallback to SQLite occurs only if explicitly enabled (`ALLOW_SQLITE_FALLBACK=true`).
-   - The active database engine is determined deterministically once at startup and never changed per-request.
+No machine learning, no complex predictions, and no technical setup required.
 
 ---
 
-## 🛠️ Tech Stack
+## 🖥️ Portal Sections
 
-| Layer | Technology | Purpose |
-|:---|:---|:---|
-| **Language** | Python 3.14.5 | Backend logic, data engineering, ML modeling |
-| **Web Framework** | Flask 3.1.3 (Jinja2) | Lightweight web server and RESTful routing |
-| **Database** | MySQL (Primary) + SQLite (Dev Fallback) | Relational storage for mess records, predictions, and advisories |
-| **ORM & Migrations**| Flask-SQLAlchemy 3.1.1, Flask-Migrate 4.1.0, Alembic | Database abstraction, foreign keys, migrations |
-| **Machine Learning** | Scikit-learn 1.9.1, Pandas 3.1.1, NumPy 2.5.4, Joblib | Preprocessing, Random Forest Regressor |
-| **Frontend** | HTML5, CSS3, JavaScript (ES6) | Responsive SaaS dashboard layout |
-| **Data Visualization**| Chart.js 4.4 | Interactive trend charts, waste breakdowns |
-| **Testing** | Pytest 9.2.0 | Automated unit, integration, security, and edge-case test suite (**42 tests passing**) |
+The portal is organized into three simple sections:
+
+| Section | What it does |
+|:---|:---|
+| **📊 Summary** (`/` or `/summary`) | Shows overall totals for **Meals prepared**, **Meals served**, and **Meals left over**, along with a simple comparison chart and recent activity. |
+| **➕ Add a Meal Record** (`/entry` or `/add`) | A clean form to enter the date, meal session (Breakfast, Lunch, Snacks, Dinner), menu dishes, cooked count, and served count. |
+| **📋 Past Records** (`/records`) | A searchable, filterable list of all previous meal records with options to view, edit, delete, or download as a CSV spreadsheet. |
 
 ---
 
-## 🚀 Beginner Quick-Start Guide (Step-by-Step)
+## 🚀 How to Run the Portal (Quick Start)
 
-### Step 1: Open Terminal in Project Folder
-```bash
-cd "C:\Users\LOQ\Desktop\IDT 3rd sem"
-```
-
-### Step 2: Activate the Virtual Environment
-```bash
-# On Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-# On Windows Command Prompt:
-.\venv\Scripts\activate.bat
-```
-
-### Step 3: Initialize Database (Creates Tables & Seeds Sample Records)
-```bash
-python database/init_db.py --seed
-```
-
-### Step 4: Run Automated Tests
-```bash
-python -m pytest -v
-```
-
-### Step 5: Start the Web Application
-```bash
-python run.py
-```
-Open your browser and navigate to:  
+### Option A: One-Click Startup (Windows)
+Double-click the **`start_app.bat`** file in the project folder.  
+It will automatically activate the Python environment and open the portal in your default web browser at:
 👉 **`http://127.0.0.1:5000`**
 
 ---
 
-## 📋 Important Constraints & Design Principles
-- **Software-only project:** No hardware or IoT scales required.
-- **No paid external APIs:** Fully self-contained local stack.
-- **Genuine ML Model:** Real Random Forest Regressor trained on 720 historical records, evaluated on an 80/20 chronological split (MAE 13.22, R² 0.985), with an empirical 100% coverage heuristic uncertainty range.
-- **Synthetic Dataset Transparency:** Clearly documented as synthetic campus data; operational advisory advises kitchen staff to verify sudden campus events.
-- **Application Security:** Session-based CSRF tokens on all state-modifying requests, parameterized ORM queries, XSS auto-escaping, sanitized `/api/health` filesystem paths, and custom production error pages (400, 403, 404, 500).
-- **Human-Verified Food Safety:** Unconsumed meals flagged for human safety verification before donation coordination.
+### Option B: From the Terminal / Command Prompt
+
+1. Open your terminal in this project folder:
+   ```bash
+   cd "c:\Users\LOQ\Desktop\IDT 3rd sem"
+   ```
+
+2. Activate the virtual environment:
+   ```bash
+   # Windows PowerShell:
+   .\venv\Scripts\Activate.ps1
+
+   # Windows Command Prompt:
+   .\venv\Scripts\activate.bat
+   ```
+
+3. (Optional) Initialize the database:
+   ```bash
+   python database/init_db.py
+   ```
+
+4. Start the portal:
+   ```bash
+   python run.py
+   ```
+
+5. Open your web browser and go to:  
+   👉 **`http://127.0.0.1:5000`**
+
+---
+
+## 🧪 Running Automated Tests
+
+To run the built-in test suite:
+```bash
+python -m pytest -v
+```
+
+All tests run in-memory and verify:
+- Leftover calculations (`prepared − served`)
+- Ongoing meal handling (saving without served count)
+- Form validation (negative counts blocked, served > prepared blocked, required fields)
+- Duplicate session prevention
+- Record editing and safe deletion
+- CSV export and summary data
+
+---
+
+## 📁 Project Structure
+
+```text
+IDT 3rd sem/
+├── app/
+│   ├── models/
+│   │   └── mess_record.py       # Mess record database model
+│   ├── routes/
+│   │   ├── main_routes.py       # Summary, Add Record, Past Records, Edit, Delete
+│   │   └── api_routes.py        # Summary chart data & CSV export
+│   ├── static/
+│   │   ├── css/style.css        # Simple, legible responsive styling
+│   │   └── js/                  # Chart and form helper scripts
+│   └── templates/
+│       ├── base.html            # Main layout with clean navigation
+│       ├── dashboard.html       # Summary page
+│       ├── entry.html           # Add a meal record form
+│       ├── edit_entry.html      # Edit meal record form
+│       ├── records.html         # Past records table and filters
+│       └── error.html           # Friendly error pages
+├── database/
+│   ├── food_waste.db            # Local SQLite database storing meal records
+│   ├── init_db.py               # Setup script
+│   ├── schema.sql               # Database schema definition
+│   └── seed_data.py             # Sample records generator for testing
+├── tests/
+│   ├── test_db.py               # Database model & calculation tests
+│   └── test_routes.py           # Route, validation, and workflow tests
+├── requirements.txt             # Lightweight Python dependencies
+├── run.py                       # Application entry point
+├── start_app.bat                # Windows 1-click launcher
+└── README.md                    # This guide
+```
+
+---
+
+## 🔒 Notes on Data Safety
+
+- Existing historical mess records are safely preserved in `database/food_waste.db`.
+- Obsolete AI prediction fields and tables are retired and no longer used.
+- Deleting a record requires manual confirmation to prevent accidental loss.

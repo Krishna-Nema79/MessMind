@@ -1,23 +1,43 @@
 /**
- * AI-POWERED FOOD WASTE PREDICTION SYSTEM
+ * MESSMIND - Daily Mess Meal Logging Portal
  * Core UI Script: main.js
  */
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Mobile Sidebar Toggle
+    // 1. Mobile Sidebar Toggle & Backdrop
     const toggleBtn = document.getElementById("sidebarToggleBtn");
     const sidebar = document.querySelector(".sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add("open");
+        if (overlay) overlay.classList.add("active");
+    }
+
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove("open");
+        if (overlay) overlay.classList.remove("active");
+    }
 
     if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener("click", function () {
-            sidebar.classList.toggle("open");
+        toggleBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (sidebar.classList.contains("open")) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
         });
+
+        if (overlay) {
+            overlay.addEventListener("click", closeSidebar);
+        }
 
         // Close sidebar on click outside on mobile
         document.addEventListener("click", function (e) {
             if (window.innerWidth <= 768 && sidebar.classList.contains("open")) {
                 if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    sidebar.classList.remove("open");
+                    closeSidebar();
                 }
             }
         });

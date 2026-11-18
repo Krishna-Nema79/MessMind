@@ -1,27 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Historical Records - Food Waste AI{% endblock %}
-{% block page_title %}Historical Mess Records{% endblock %}
+{% block title %}Past Records - MessMind{% endblock %}
+{% block page_title %}Past Meal Records{% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card-header">
         <div>
-            <h2 class="card-title">🗂️ Previous Mess Consumption Logs</h2>
+            <h2 class="card-title">📋 Past Meal Records</h2>
             <div class="card-subtitle">
                 {% if pagination %}
                     Showing page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} records total)
                 {% else %}
-                    Showing {{ records|length }} records stored in database
+                    Showing {{ records|length }} meal records
                 {% endif %}
             </div>
         </div>
-        <a href="{{ url_for('api.export_csv') }}" class="btn btn-secondary btn-sm">📄 Export to CSV</a>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ url_for('api.export_csv') }}" class="btn btn-secondary btn-sm">📄 Download CSV</a>
+            <a href="{{ url_for('main.entry') }}" class="btn btn-primary btn-sm">+ Add Meal Record</a>
+        </div>
     </div>
 
     <!-- Filter & Search Bar -->
     <form method="GET" action="{{ url_for('main.records') }}" style="background-color: #f8fafc; padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px; border: 1px solid var(--border-color);">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: flex-end;">
+        <div class="filter-grid" style="align-items: flex-end;">
             <!-- Start Date -->
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="start_date">From Date</label>
@@ -34,13 +37,14 @@
                 <input type="date" class="form-control" id="end_date" name="end_date" value="{{ filter_end or '' }}">
             </div>
 
-            <!-- Meal Type -->
+            <!-- Meal Session -->
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="filter_meal">Meal Session</label>
                 <select class="form-control" id="filter_meal" name="meal_type">
                     <option value="">All Sessions</option>
                     <option value="Breakfast" {% if filter_meal == 'Breakfast' %}selected{% endif %}>Breakfast</option>
                     <option value="Lunch" {% if filter_meal == 'Lunch' %}selected{% endif %}>Lunch</option>
+                    <option value="Snacks" {% if filter_meal == 'Snacks' %}selected{% endif %}>Snacks</option>
                     <option value="Dinner" {% if filter_meal == 'Dinner' %}selected{% endif %}>Dinner</option>
                 </select>
             </div>
@@ -48,12 +52,12 @@
             <!-- Search Menu -->
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="search_menu">Search Menu</label>
-                <input type="text" class="form-control" id="search_menu" name="q" placeholder="e.g. Biryani" value="{{ search_q or '' }}">
+                <input type="text" class="form-control" id="search_menu" name="q" placeholder="e.g. Biryani, Dal..." value="{{ search_q or '' }}">
             </div>
 
             <!-- Filter Buttons -->
             <div style="display: flex; gap: 8px;">
-                <button type="submit" class="btn btn-primary btn-sm" style="flex: 1;">🔍 Filter</button>
+                <button type="submit" class="btn btn-primary btn-sm" style="flex: 1;">Search</button>
                 <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm" title="Clear Filters">Reset</a>
             </div>
         </div>
@@ -65,74 +69,50 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th># ID</th>
                     <th>Date</th>
                     <th>Meal</th>
-                    <th>Menu Served</th>
-                    <th>Attendance</th>
-                    <th>Prepared</th>
-                    <th>Actual Consumed</th>
-                    <th>Actual Waste</th>
-                    <th>Waste %</th>
-                    <th>AI Forecast & Workflow</th>
+                    <th>Menu</th>
+                    <th>Meals prepared</th>
+                    <th>Meals served</th>
+                    <th>Meals left over</th>
+                    <th>Notes</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in records %}
                 <tr>
-                    <td>#{{ r.id }}</td>
                     <td><strong>{{ r.record_date.strftime('%Y-%m-%d') }}</strong> ({{ r.day_of_week[:3] }})</td>
                     <td>
-                        <span class="badge {% if r.meal_type == 'Breakfast' %}badge-low{% elif r.meal_type == 'Lunch' %}badge-medium{% else %}badge-pending{% endif %}">
+                        <span class="badge {% if r.meal_type == 'Breakfast' %}badge-low{% elif r.meal_type == 'Lunch' %}badge-medium{% elif r.meal_type == 'Snacks' %}badge-pending{% else %}badge-high{% endif %}">
                             {{ r.meal_type }}
                         </span>
                     </td>
                     <td>{{ r.menu_name }}</td>
-                    <td>{{ r.attendance }}</td>
-                    <td>{{ r.prepared_meals }}</td>
+                    <td><strong>{{ r.prepared_meals }}</strong></td>
                     <td>
                         {% if r.consumed_meals is not none %}
                             {{ r.consumed_meals }}
                         {% else %}
-                            <span class="badge badge-pending">Ongoing</span>
+                            <span class="badge badge-pending">In progress</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if r.wasted_meals is not none %}
-                            <strong style="color: {% if r.wasted_meals > 30 %}var(--danger){% else %}var(--text-primary){% endif %};">
-                                +{{ r.wasted_meals }}
-                            </strong>
+                            <span>{{ r.wasted_meals }} <small style="color: var(--text-muted);">({{ r.waste_percentage }}%)</small></span>
                         {% else %}
                             <span style="color: var(--text-muted);">&mdash;</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {% if r.waste_percentage is not none %}
-                            <span class="badge {% if r.waste_percentage <= 10 %}badge-low{% elif r.waste_percentage <= 20 %}badge-medium{% else %}badge-high{% endif %}">
-                                {{ r.waste_percentage }}%
-                            </span>
-                        {% else %}
-                            <span class="badge badge-pending">Pending</span>
-                        {% endif %}
-                    </td>
-                    <td style="font-size: 11px;">
-                        {% if r.predicted_meals is not none %}
-                            <div>Pred: <strong>{{ r.predicted_meals }}</strong></div>
-                            <div style="color: var(--text-muted);">
-                                Surplus: {% if r.estimated_surplus is not none %}{% if r.estimated_surplus > 0 %}+{% endif %}{{ r.estimated_surplus }}{% else %}N/A{% endif %} |
-                                Err: {% if r.prediction_error is not none %}{% if r.prediction_error > 0 %}+{% endif %}{{ r.prediction_error }}{% else %}Pending{% endif %}
-                            </div>
-                        {% else %}
-                            <span style="color: var(--text-muted);">Manual Log</span>
-                        {% endif %}
+                    <td style="max-width: 180px; font-size: 12px; color: var(--text-muted);">
+                        {{ r.notes or '' }}
                     </td>
                     <td>
                         <div style="display: flex; gap: 6px;">
-                            <a href="{{ url_for('main.edit_record', record_id=r.id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">✏️ Edit</a>
-                            <form method="POST" action="{{ url_for('main.delete_record', record_id=r.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete Record #{{ r.id }}?');">
+                            <a href="{{ url_for('main.edit_record', record_id=r.id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12px;">Edit</a>
+                            <form method="POST" action="{{ url_for('main.delete_record', record_id=r.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this meal record for {{ r.meal_type }} on {{ r.record_date }}?');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 11px;">🗑️ Delete</button>
+                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 10px; font-size: 12px;">Delete</button>
                             </form>
                         </div>
                     </td>
@@ -162,9 +142,12 @@
     {% else %}
     <div class="empty-state">
         <div class="empty-state-icon">🔍</div>
-        <h3>No Records Found</h3>
-        <p>No historical records match your filter criteria. Try resetting your search filters.</p>
-        <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm">Reset Filters</a>
+        <h3>No records found</h3>
+        <p>No past meal records match your current filter. Try resetting the filters or adding a new record.</p>
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 12px;">
+            <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm">Reset Filters</a>
+            <a href="{{ url_for('main.entry') }}" class="btn btn-primary btn-sm">+ Add a Meal Record</a>
+        </div>
     </div>
     {% endif %}
 </div>

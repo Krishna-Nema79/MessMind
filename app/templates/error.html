@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ error_code }} - {{ title }} - Food Waste AI{% endblock %}
+{% block title %}{{ error_code }} - {{ title }} - MessMind{% endblock %}
 {% block page_title %}{{ error_code }} {{ title }}{% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
         {{ message }}
     </p>
     <div style="display: flex; justify-content: center; gap: 12px;">
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Summary</a>
         <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
     </div>
 </div>

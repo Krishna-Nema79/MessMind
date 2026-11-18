@@ -1,7 +1,6 @@
 /* ==========================================================================
-   AI-POWERED FOOD WASTE PREDICTION SYSTEM
-   Modern Responsive SaaS Dashboard Stylesheet
-   Theme: Sustainability Green & Crisp White Palette
+   MESSMIND - Daily Mess Meal Logging Portal
+   Theme: Friendly Green & Crisp White Palette
    ========================================================================== */
 
 :root {
@@ -44,6 +43,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg-main);
@@ -60,6 +64,8 @@ body {
 .app-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Sidebar */
@@ -200,6 +206,7 @@ body {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    max-width: 100%;
 }
 
 /* Topbar */
@@ -214,12 +221,14 @@ body {
     position: sticky;
     top: 0;
     z-index: 90;
+    gap: 12px;
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+    min-width: 0;
 }
 
 .menu-toggle-btn {
@@ -229,18 +238,24 @@ body {
     font-size: 22px;
     cursor: pointer;
     color: var(--text-primary);
+    line-height: 1;
+    padding: 4px;
 }
 
 .topbar-title {
     font-size: 18px;
     font-weight: 600;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .topbar-right {
     display: flex;
     align-items: center;
     gap: 16px;
+    flex-shrink: 0;
 }
 
 .badge-tag {
@@ -257,6 +272,8 @@ body {
 .page-content {
     padding: 28px 32px 48px;
     flex: 1;
+    min-width: 0;
+    max-width: 100%;
 }
 
 /* Flash Messages */
@@ -314,6 +331,10 @@ body {
     padding: 20px 24px;
     margin-bottom: 24px;
     transition: box-shadow 0.2s ease;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .card:hover {
@@ -324,9 +345,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-bottom: 18px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border-color);
+}
+
+.card-header > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .card-title {
@@ -336,6 +364,8 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+    word-break: break-word;
 }
 
 .card-subtitle {
@@ -518,12 +548,17 @@ textarea.form-control {
    ========================================================================== */
 
 .table-responsive {
-    overflow-x: auto;
+    display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 8px;
 }
 
 .table {
     width: 100%;
+    min-width: 620px;
     border-collapse: collapse;
     font-size: 14px;
     text-align: left;
@@ -580,72 +615,6 @@ textarea.form-control {
 .badge-verified {
     background-color: #dcfce7;
     color: #15803d;
-}
-
-/* ==========================================================================
-   AI Prediction Results Card
-   ========================================================================== */
-
-.prediction-result-card {
-    background: linear-gradient(to bottom right, #ffffff, #f0fdf4);
-    border: 2px solid var(--primary-border);
-    border-radius: var(--radius-md);
-    padding: 24px;
-    margin-top: 24px;
-    box-shadow: var(--shadow-md);
-}
-
-.prediction-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-}
-
-.prediction-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin: 20px 0;
-}
-
-.metric-box {
-    background-color: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    text-align: center;
-}
-
-.metric-box.highlight {
-    border-color: var(--primary);
-    background-color: var(--primary-subtle);
-}
-
-.metric-box .label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 600;
-}
-
-.metric-box .value {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--primary-dark);
-    margin-top: 4px;
-}
-
-.disclaimer-banner {
-    background-color: #fefce8;
-    border: 1px solid #fef08a;
-    color: #854d0e;
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 16px;
 }
 
 /* Modals */
@@ -719,6 +688,12 @@ textarea.form-control {
     position: relative;
     height: 300px;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+canvas {
+    max-width: 100% !important;
 }
 
 /* Empty State */
@@ -747,16 +722,52 @@ textarea.form-control {
     margin: 0 auto 16px;
 }
 
+/* Desktop Only Responsive Helper */
+.desktop-only {
+    display: inline;
+}
+
+/* Filter Grid */
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+/* Sidebar Overlay for Mobile */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 95;
+    display: none;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
 /* Responsive Overrides */
 @media (max-width: 992px) {
     .charts-grid {
         grid-template-columns: 1fr;
+    }
+
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
     }
 }
 
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
+        box-shadow: var(--shadow-lg);
     }
 
     .sidebar.open {
@@ -777,5 +788,92 @@ textarea.form-control {
 
     .page-content {
         padding: 20px 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .topbar {
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .topbar-left {
+        gap: 10px;
+    }
+
+    .topbar-title {
+        font-size: 15px;
+    }
+
+    .topbar-right .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .page-content {
+        padding: 16px 12px;
+    }
+
+    .card {
+        padding: 16px 14px;
+        margin-bottom: 16px;
+    }
+
+    .stat-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 14px 16px;
+    }
+
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .topbar {
+        padding: 0 8px;
+    }
+
+    .topbar-title {
+        font-size: 14px;
+        max-width: 140px;
+    }
+
+    .topbar-right .btn {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+
+    .card {
+        padding: 12px 10px;
+    }
+
+    .stat-card {
+        padding: 12px 12px;
+        gap: 12px;
     }
 }

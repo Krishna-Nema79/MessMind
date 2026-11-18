@@ -49,3 +49,9 @@ database/*.sqlite3
 # OS files
 .DS_Store
 Thumbs.db
+
+# Temporary QA scripts
+scratch/
+
+# Pytest cache
+.pytest_cache/

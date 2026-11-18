@@ -1,10 +1,8 @@
 """
 =============================================================================
-AI-POWERED FOOD WASTE PREDICTION SYSTEM
+MESSMIND - Daily Mess Meal Logging Portal
 Module: app/config.py
-Description: Dynamic Dual-Database Configuration (MySQL Primary + SQLite Fallback).
-Supports URL-encoded credentials (urllib.parse.quote_plus), DATABASE_URL overrides,
-controlled fallback flags (ALLOW_SQLITE_FALLBACK), and deterministic startup resolution.
+Description: Configuration and storage settings.
 =============================================================================
 """
 
@@ -110,11 +108,6 @@ class Config:
         }
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # Machine learning model paths
-    ML_MODEL_PATH = BASE_DIR / "ml_engine" / "saved_models" / "random_forest_model.joblib"
-    PREPROCESSOR_PATH = BASE_DIR / "ml_engine" / "saved_models" / "preprocessor.joblib"
-    METRICS_PATH = BASE_DIR / "ml_engine" / "saved_models" / "model_metrics.json"
 
     @classmethod
     def get_masked_uri(cls, uri: str = None) -> str:

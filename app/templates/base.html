@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mess Food Waste AI{% endblock %} - College Mess Management</title>
-    <!-- Modern Stylesheet -->
+    <title>{% block title %}MessMind{% endblock %} - Daily Mess Portal</title>
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Chart.js 4.4 CDN for interactive graphs -->
+    <!-- Chart.js for simple overview chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -14,56 +14,38 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <a href="{{ url_for('main.dashboard') }}" class="sidebar-brand">
-                <div class="brand-icon">🌱</div>
+                <div class="brand-icon">🍲</div>
                 <div class="brand-text">
-                    <h1>Food Waste AI</h1>
-                    <span>Mess Analytics</span>
+                    <h1>MessMind</h1>
+                    <span>Daily Mess Portal</span>
                 </div>
             </a>
 
-            <div class="sidebar-nav">
-                <div class="nav-section-title">Core Operations</div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Menu</div>
                 <a href="{{ url_for('main.dashboard') }}" class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
                     <span class="icon">📊</span>
-                    <span>Dashboard</span>
+                    <span>Summary</span>
                 </a>
                 <a href="{{ url_for('main.entry') }}" class="nav-item {% if request.endpoint == 'main.entry' %}active{% endif %}">
-                    <span class="icon">📝</span>
-                    <span>Daily Data Entry</span>
+                    <span class="icon">➕</span>
+                    <span>Add Meal Record</span>
                 </a>
-                <a href="{{ url_for('main.predict') }}" class="nav-item {% if request.endpoint == 'main.predict' %}active{% endif %}">
-                    <span class="icon">🔮</span>
-                    <span>AI Prediction</span>
+                <a href="{{ url_for('main.records') }}" class="nav-item {% if request.endpoint in ['main.records', 'main.edit_record'] %}active{% endif %}">
+                    <span class="icon">📋</span>
+                    <span>Past Records</span>
                 </a>
-
-                <div class="nav-section-title" style="margin-top: 14px;">Analytics & Records</div>
-                <a href="{{ url_for('main.analytics') }}" class="nav-item {% if request.endpoint == 'main.analytics' %}active{% endif %}">
-                    <span class="icon">📈</span>
-                    <span>Waste Analytics</span>
-                </a>
-                <a href="{{ url_for('main.records') }}" class="nav-item {% if request.endpoint == 'main.records' %}active{% endif %}">
-                    <span class="icon">🗂️</span>
-                    <span>Historical Records</span>
-                </a>
-
-                <div class="nav-section-title" style="margin-top: 14px;">Sustainability</div>
-                <a href="{{ url_for('main.surplus') }}" class="nav-item {% if request.endpoint == 'main.surplus' %}active{% endif %}">
-                    <span class="icon">🍲</span>
-                    <span>Surplus Advisory</span>
-                </a>
-            </div>
+            </nav>
 
             <div class="sidebar-footer">
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    <span>Model Online (v1.0 RF)</span>
-                </div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; justify-content: space-between;">
-                    <span>DB: <strong>{{ db_info.type|upper }}</strong>{% if db_info.is_fallback %} <span style="color: #f59e0b;">(Dev Fallback)</span>{% endif %}</span>
-                    <a href="{{ url_for('api.health_check') }}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 0.7rem;">/health</a>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+                    MessMind &bull; Easy Meal Tracking
                 </div>
             </div>
         </aside>
+
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <!-- Main Workspace Area -->
         <div class="main-wrapper">
@@ -71,15 +53,14 @@
             <header class="topbar">
                 <div class="topbar-left">
                     <button class="menu-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle navigation">☰</button>
-                    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+                    <div class="topbar-title">{% block page_title %}Summary{% endblock %}</div>
                 </div>
                 <div class="topbar-right">
-                    <span class="badge-tag">🌱 Zero Waste Mess</span>
-                    <a href="{{ url_for('main.entry') }}" class="btn btn-primary btn-sm">+ Log Meal</a>
+                    <a href="{{ url_for('main.entry') }}" class="btn btn-primary btn-sm">+ Add<span class="desktop-only"> Meal Record</span></a>
                 </div>
             </header>
 
-            <!-- Page Content Injection -->
+            <!-- Page Content -->
             <main class="page-content">
                 <!-- Flash Notification Container -->
                 <div class="flash-container">

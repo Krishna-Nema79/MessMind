@@ -1,88 +1,152 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Record #{{ record.id }} - Food Waste AI{% endblock %}
-{% block page_title %}Edit Mess Record #{{ record.id }}{% endblock %}
+{% block title %}Edit Meal Record #{{ record.id }} - MessMind{% endblock %}
+{% block page_title %}Edit Meal Record{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 860px; margin: 0 auto;">
+<div class="card" style="max-width: 800px; margin: 0 auto;">
     <div class="card-header">
         <div>
-            <h2 class="card-title">✏️ Edit Mess Record #{{ record.id }}</h2>
-            <div class="card-subtitle">Update meal preparation, attendance, or record completed actual consumption</div>
+            <h2 class="card-title">✏️ Edit Meal Record #{{ record.id }}</h2>
+            <div class="card-subtitle">Update meal preparation counts or enter final portions served</div>
         </div>
-        <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm">&larr; Back to Records</a>
+        <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm">&larr; <span class="desktop-only">Back to </span>Past Records</a>
     </div>
 
-    {% if record.predicted_meals %}
-    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-        <div>
-            <strong style="color: var(--primary-dark); font-size: 13px;">🔮 AI Forecast Linkage:</strong>
-            <span style="font-size: 13px; color: var(--text-secondary); margin-left: 6px;">
-                Predicted Demand: <strong>{{ record.predicted_meals }} meals</strong> &bull;
-                Estimated Planned Surplus: <strong>{% if record.estimated_surplus is not none %}{% if record.estimated_surplus > 0 %}+{% endif %}{{ record.estimated_surplus }}{% else %}N/A{% endif %} meals</strong>
-            </span>
-        </div>
-        <span class="badge badge-low">Model Linked</span>
+    {% if record.is_ongoing %}
+    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px;">
+        <span style="color: #1e40af; font-size: 14px;">
+            ℹ️ <strong>Meal is currently marked as In progress.</strong> Enter the number of meals served below to complete this record.
+        </span>
     </div>
     {% endif %}
 
     <form method="POST" action="{{ url_for('main.edit_record', record_id=record.id) }}" id="editForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="predicted_meals" value="{{ record.predicted_meals or '' }}">
 
         <div class="form-grid">
             <!-- Date -->
             <div class="form-group">
-                <label class="form-label" for="record_date">Date <span class="required">*</span></label>
+                <label class="form-label" for="record_date">Date <span class="required" style="color: var(--danger);">*</span></label>
                 <input type="date" class="form-control" id="record_date" name="record_date" value="{{ record.record_date.strftime('%Y-%m-%d') }}" required>
             </div>
 
-            <!-- Meal Type -->
+            <!-- Meal Session -->
             <div class="form-group">
-                <label class="form-label" for="meal_type">Meal Session <span class="required">*</span></label>
+                <label class="form-label" for="meal_type">Meal Session <span class="required" style="color: var(--danger);">*</span></label>
                 <select class="form-control" id="meal_type" name="meal_type" required>
                     <option value="Breakfast" {% if record.meal_type == 'Breakfast' %}selected{% endif %}>Breakfast</option>
                     <option value="Lunch" {% if record.meal_type == 'Lunch' %}selected{% endif %}>Lunch</option>
+                    <option value="Snacks" {% if record.meal_type == 'Snacks' %}selected{% endif %}>Snacks</option>
                     <option value="Dinner" {% if record.meal_type == 'Dinner' %}selected{% endif %}>Dinner</option>
                 </select>
             </div>
 
-            <!-- Expected Attendance -->
-            <div class="form-group">
-                <label class="form-label" for="attendance">Hostel Attendance <span class="required">*</span></label>
-                <input type="number" class="form-control" id="attendance" name="attendance" value="{{ record.attendance }}" min="1" max="2500" required>
-            </div>
-
             <!-- Menu Name -->
-            <div class="form-group">
-                <label class="form-label" for="menu_name">Menu Item / Meal Name <span class="required">*</span></label>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label class="form-label" for="menu_name">Menu / Dishes Cooked <span class="required" style="color: var(--danger);">*</span></label>
                 <input type="text" class="form-control" id="menu_name" name="menu_name" value="{{ record.menu_name }}" required>
             </div>
 
-            <!-- Prepared Meals -->
+            <!-- Meals Prepared -->
             <div class="form-group">
-                <label class="form-label" for="prepared_meals">Cooked / Prepared Meals <span class="required">*</span></label>
-                <input type="number" class="form-control" id="prepared_meals" name="prepared_meals" value="{{ record.prepared_meals }}" min="1" required>
+                <label class="form-label" for="prepared_meals">Meals prepared <span class="required" style="color: var(--danger);">*</span></label>
+                <input type="number" class="form-control" id="prepared_meals" name="prepared_meals" value="{{ record.prepared_meals }}" min="1" max="10000" required>
             </div>
 
-            <!-- Consumed Meals -->
+            <!-- Meals Served -->
             <div class="form-group">
-                <label class="form-label" for="consumed_meals">Actual Consumed Meals</label>
-                <input type="number" class="form-control" id="consumed_meals" name="consumed_meals" value="{{ record.consumed_meals if record.consumed_meals is not none else '' }}" placeholder="Enter when dining completes" min="0">
-                <span class="form-hint">Filling this updates actual food waste and prediction error</span>
+                <label class="form-label" for="consumed_meals">Meals served</label>
+                <input type="number" class="form-control" id="consumed_meals" name="consumed_meals" value="{{ record.consumed_meals if record.consumed_meals is not none else '' }}" placeholder="Leave blank if meal is ongoing" min="0">
+                <span class="form-hint">Enter the final number of portions eaten by students</span>
             </div>
         </div>
 
+        <!-- Live Calculation Box -->
+        <div id="liveCalcBox" style="display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 14px 18px; margin: 18px 0;">
+            <div style="font-size: 14px; font-weight: 600; color: #166534; margin-bottom: 4px;">
+                📊 Live Meal Calculation:
+            </div>
+            <div id="calcMessage" style="font-size: 14px; color: #15803d;"></div>
+        </div>
+
         <!-- Notes -->
-        <div class="form-group" style="margin-top: 10px;">
-            <label class="form-label" for="notes">Kitchen & Dining Notes</label>
-            <textarea class="form-control" id="notes" name="notes">{{ record.notes or '' }}</textarea>
+        <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label" for="notes">Notes (Optional)</label>
+            <textarea class="form-control" id="notes" name="notes" rows="2">{{ record.notes or '' }}</textarea>
         </div>
 
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 24px;">
             <a href="{{ url_for('main.records') }}" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">💾 Update Record</button>
+            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const prepInput = document.getElementById("prepared_meals");
+    const consInput = document.getElementById("consumed_meals");
+    const calcBox = document.getElementById("liveCalcBox");
+    const calcMsg = document.getElementById("calcMessage");
+
+    function updateCalculation() {
+        const prep = parseInt(prepInput.value, 10);
+        const consVal = consInput.value.trim();
+
+        if (isNaN(prep) || prep <= 0) {
+            calcBox.style.display = "none";
+            return;
+        }
+
+        if (consVal === "") {
+            calcBox.style.display = "block";
+            calcBox.style.backgroundColor = "#eff6ff";
+            calcBox.style.borderColor = "#bfdbfe";
+            calcMsg.style.color = "#1e40af";
+            calcMsg.innerHTML = "ℹ️ <strong>Ongoing meal:</strong> Served count is blank. This record will stay marked as <em>In progress</em>.";
+            return;
+        }
+
+        const cons = parseInt(consVal, 10);
+        if (isNaN(cons)) {
+            calcBox.style.display = "none";
+            return;
+        }
+
+        if (cons < 0) {
+            calcBox.style.display = "block";
+            calcBox.style.backgroundColor = "#fef2f2";
+            calcBox.style.borderColor = "#fecaca";
+            calcMsg.style.color = "#b91c1c";
+            calcMsg.innerHTML = "⚠️ <strong>Error:</strong> Meals served cannot be negative.";
+            return;
+        }
+
+        if (cons > prep) {
+            calcBox.style.display = "block";
+            calcBox.style.backgroundColor = "#fef2f2";
+            calcBox.style.borderColor = "#fecaca";
+            calcMsg.style.color = "#b91c1c";
+            calcMsg.innerHTML = "⚠️ <strong>Warning:</strong> Meals served cannot exceed meals prepared (" + prep + ").";
+            return;
+        }
+
+        const leftover = prep - cons;
+        const pct = ((leftover / prep) * 100).toFixed(1);
+
+        calcBox.style.display = "block";
+        calcBox.style.backgroundColor = "#f0fdf4";
+        calcBox.style.borderColor = "#bbf7d0";
+        calcMsg.style.color = "#166534";
+        calcMsg.innerHTML = "<strong>Meals left over: " + leftover + " portions</strong> (" + pct + "% of prepared food).";
+    }
+
+    prepInput.addEventListener("input", updateCalculation);
+    consInput.addEventListener("input", updateCalculation);
+    updateCalculation();
+});
+</script>
 {% endblock %}

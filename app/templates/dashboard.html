@@ -1,96 +1,79 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Food Waste AI{% endblock %}
-{% block page_title %}College Mess Operations Dashboard{% endblock %}
+{% block title %}Summary - MessMind{% endblock %}
+{% block page_title %}Daily Mess Summary{% endblock %}
 
 {% block content %}
-<!-- Top KPI Statistics Grid -->
+<!-- Summary Statistics Cards -->
 <div class="stat-grid">
     <div class="stat-card">
         <div class="stat-icon icon-blue">🍳</div>
         <div class="stat-content">
-            <div class="stat-label">Total Meals Prepared</div>
+            <div class="stat-label">Meals prepared</div>
             <div class="stat-value">{{ "{:,}".format(stats.total_prepared) }}</div>
-            <div class="stat-hint">Across all recorded kitchen logs</div>
+            <div class="stat-hint">Total portions cooked across all records</div>
         </div>
     </div>
 
     <div class="stat-card">
         <div class="stat-icon icon-green">🍽️</div>
         <div class="stat-content">
-            <div class="stat-label">Total Meals Consumed</div>
+            <div class="stat-label">Meals served</div>
             <div class="stat-value">{{ "{:,}".format(stats.total_consumed) }}</div>
-            <div class="stat-hint">Verified student consumption</div>
+            <div class="stat-hint">Total portions served to students</div>
         </div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon icon-orange">🗑️</div>
+        <div class="stat-icon icon-orange">🍲</div>
         <div class="stat-content">
-            <div class="stat-label">Total Food Waste</div>
-            <div class="stat-value">{{ "{:,}".format(stats.total_wasted) }}</div>
-            <div class="stat-hint">Unconsumed surplus portions</div>
+            <div class="stat-label">Meals left over</div>
+            <div class="stat-value">{{ "{:,}".format(stats.total_leftover) }}</div>
+            <div class="stat-hint">Portions remaining after meals</div>
         </div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon {% if stats.waste_percentage > 15 %}icon-red{% else %}icon-green{% endif %}">📉</div>
+        <div class="stat-icon {% if stats.leftover_percentage > 20 %}icon-red{% else %}icon-green{% endif %}">📊</div>
         <div class="stat-content">
-            <div class="stat-label">Average Waste %</div>
-            <div class="stat-value">{{ stats.waste_percentage }}%</div>
-            <div class="stat-hint">Target: Below 10.0%</div>
+            <div class="stat-label">Leftover rate</div>
+            <div class="stat-value">{{ stats.leftover_percentage }}%</div>
+            <div class="stat-hint">Average percentage left over</div>
         </div>
     </div>
 </div>
 
 {% if stats.ongoing_records > 0 %}
-<div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-    <div style="font-size: 13px; color: #1e40af;">
-        ℹ️ <strong>Active Dining Session:</strong> {{ stats.ongoing_records }} meal currently ongoing. Actual food waste is calculated after consumption is logged.
+<div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+    <div style="font-size: 14px; color: #1e40af;">
+        ℹ️ <strong>Meal in progress:</strong> {{ stats.ongoing_records }} meal has been saved with preparation details. Enter the served count once dining concludes to complete the record.
     </div>
-    <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm" style="font-size: 11px;">View Active Logs</a>
+    <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm">View in Past Records</a>
 </div>
 {% endif %}
 
-<!-- Interactive Chart.js Section -->
-<div class="charts-grid">
-    <!-- Chart 1: Prepared vs Consumed Trend -->
-    <div class="card">
-        <div class="card-header">
-            <div>
-                <h2 class="card-title">📈 Prepared vs. Consumed Meals (Recent Days)</h2>
-                <div class="card-subtitle">Tracking kitchen preparation efficiency vs student demand</div>
-            </div>
-            <span class="badge badge-low">Live Sync</span>
+<!-- Simple Chart: Meals Prepared vs Meals Served -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">📈 Meals Prepared vs. Meals Served <span class="desktop-only">(Recent Days)</span></h2>
+            <div class="card-subtitle">Visual overview of portions prepared and served for recent meals</div>
         </div>
-        <div class="chart-container">
-            <canvas id="consumptionChart"></canvas>
-        </div>
+        <a href="{{ url_for('main.entry') }}" class="btn btn-primary btn-sm">+ Add<span class="desktop-only"> New</span> Record</a>
     </div>
-
-    <!-- Chart 2: Daily Waste Percentage Trend -->
-    <div class="card">
-        <div class="card-header">
-            <div>
-                <h2 class="card-title">📊 Daily Food Waste Percentage Trend</h2>
-                <div class="card-subtitle">Portion of prepared food wasted per meal session</div>
-            </div>
-            <span class="badge badge-pending">Target &lt; 10%</span>
-        </div>
-        <div class="chart-container">
-            <canvas id="wastePctChart"></canvas>
-        </div>
+    <div class="chart-container" style="height: 300px;">
+        <canvas id="consumptionChart"></canvas>
     </div>
 </div>
 
-<!-- Recent Mess Activity Table -->
+<!-- Recent Records Table -->
 <div class="card">
     <div class="card-header">
         <div>
-            <h2 class="card-title">📋 Recent Mess Activity Logs</h2>
-            <div class="card-subtitle">Latest recorded kitchen preparation and consumption logs</div>
+            <h2 class="card-title">📋 Recent Meal Records</h2>
+            <div class="card-subtitle">The most recent meal entries logged in the portal</div>
         </div>
-        <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm">View Full History &rarr;</a>
+        <a href="{{ url_for('main.records') }}" class="btn btn-secondary btn-sm"><span class="desktop-only">View All </span>Past Records &rarr;</a>
     </div>
 
     {% if recent_records %}
@@ -99,13 +82,12 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Meal Session</th>
-                    <th>Menu Served</th>
-                    <th>Attendance</th>
-                    <th>Prepared</th>
-                    <th>Actual Consumed</th>
-                    <th>Actual Waste</th>
-                    <th>Waste %</th>
+                    <th>Meal</th>
+                    <th>Menu</th>
+                    <th>Meals prepared</th>
+                    <th>Meals served</th>
+                    <th>Meals left over</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -113,13 +95,12 @@
                 <tr>
                     <td><strong>{{ r.record_date.strftime('%d %b %Y') }}</strong> ({{ r.day_of_week }})</td>
                     <td>
-                        <span class="badge {% if r.meal_type == 'Breakfast' %}badge-low{% elif r.meal_type == 'Lunch' %}badge-medium{% else %}badge-pending{% endif %}">
+                        <span class="badge {% if r.meal_type == 'Breakfast' %}badge-low{% elif r.meal_type == 'Lunch' %}badge-medium{% elif r.meal_type == 'Snacks' %}badge-pending{% else %}badge-high{% endif %}">
                             {{ r.meal_type }}
                         </span>
                     </td>
                     <td>{{ r.menu_name }}</td>
-                    <td>{{ r.attendance }}</td>
-                    <td>{{ r.prepared_meals }}</td>
+                    <td><strong>{{ r.prepared_meals }}</strong></td>
                     <td>
                         {% if r.consumed_meals is not none %}
                             {{ r.consumed_meals }}
@@ -129,19 +110,13 @@
                     </td>
                     <td>
                         {% if r.wasted_meals is not none %}
-                            <strong style="color: {% if r.wasted_meals > 30 %}var(--danger){% else %}var(--text-primary){% endif %};">+{{ r.wasted_meals }}</strong>
+                            <span>{{ r.wasted_meals }} <small style="color: var(--text-muted);">({{ r.waste_percentage }}%)</small></span>
                         {% else %}
                             <span style="color: var(--text-muted);">&mdash;</span>
                         {% endif %}
                     </td>
                     <td>
-                        {% if r.waste_percentage is not none %}
-                            <span class="badge {% if r.waste_percentage <= 10 %}badge-low{% elif r.waste_percentage <= 20 %}badge-medium{% else %}badge-high{% endif %}">
-                                {{ r.waste_percentage }}%
-                            </span>
-                        {% else %}
-                            <span class="badge badge-pending">Pending</span>
-                        {% endif %}
+                        <a href="{{ url_for('main.edit_record', record_id=r.id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12px;">Edit</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -150,10 +125,10 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <div class="empty-state-icon">🍲</div>
-        <h3>No Mess Records Yet</h3>
-        <p>Start recording daily meal preparation and consumption or seed sample historical data.</p>
-        <a href="{{ url_for('main.entry') }}" class="btn btn-primary">+ Enter First Record</a>
+        <div class="empty-state-icon">🍽️</div>
+        <h3>No meal records yet</h3>
+        <p>Start recording your daily mess meals by clicking below.</p>
+        <a href="{{ url_for('main.entry') }}" class="btn btn-primary" style="margin-top: 10px;">+ Add a Meal Record</a>
     </div>
     {% endif %}
 </div>

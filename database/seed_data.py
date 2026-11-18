@@ -1,15 +1,13 @@
 """
 =============================================================================
-AI-POWERED FOOD WASTE PREDICTION SYSTEM
+MESSMIND - Simple Daily Mess Meal Logging Portal
 Module: database/seed_data.py
-Description: Seeds SQLite/MySQL database with realistic historical records
-from data/raw/synthetic_mess_data.csv for immediate dashboard visualization.
+Description: Populates database with sample realistic mess records for easy testing.
 =============================================================================
 """
 
-import csv
 import sys
-from datetime import datetime, date
+from datetime import date, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,85 +16,72 @@ if str(BASE_DIR) not in sys.path:
 
 from app import create_app
 from app.extensions import db
-from app.models.mess_record import MessRecord, SurplusAdvisory, PredictionLog
-from ml_engine.predict import get_predictor
-
-CSV_PATH = BASE_DIR / "data" / "raw" / "synthetic_mess_data.csv"
+from app.models.mess_record import MessRecord
 
 
-def seed_database(limit_records: int = 180):
+SAMPLE_MENUS = [
+    ("Breakfast", "Poha, Boiled Eggs / Banana, Tea"),
+    ("Breakfast", "Idli, Vada, Sambar & Coconut Chutney"),
+    ("Breakfast", "Aloo Paratha, Curd & Pickle"),
+    ("Lunch", "Dal Makhani, Steamed Rice, Roti & Salad"),
+    ("Lunch", "Rajma Masala, Jeera Rice, Chapati & Raita"),
+    ("Lunch", "Paneer Butter Masala, Veg Pulao & Roti"),
+    ("Snacks", "Veg Cutlet, Green Chutney & Masala Chai"),
+    ("Snacks", "Samosa, Mint Chutney & Tea"),
+    ("Dinner", "Mixed Vegetable Curry, Dal Tadka, Rice & Phulka"),
+    ("Dinner", "Chole Masala, Bhature, Steamed Rice & Salad"),
+    ("Dinner", "Paneer Kadhai, Butter Roti, Rice & Gulab Jamun"),
+]
+
+
+def seed_database(num_days: int = 14):
     """
-    Seeds database with historical records (default: last 180 records = ~60 days)
-    to provide realistic data for dashboard charts and analytics.
+    Seeds database with a couple of weeks of realistic daily mess records.
     """
     app = create_app()
     with app.app_context():
-        # Check if database already has records
         existing_count = MessRecord.query.count()
-        if existing_count >= limit_records:
-            print(f"ℹ️ Database already contains {existing_count} records. Seeding skipped.")
+        if existing_count > 0:
+            print(f"[INFO] Database already contains {existing_count} records. Seeding skipped.")
             return
 
         print("=" * 60)
-        print("🌱 Seeding Database with Historical Mess Records...")
+        print("Seeding Database with Sample Mess Records...")
         print("=" * 60)
 
-        if not CSV_PATH.exists():
-            print(f"❌ Synthetic CSV missing at {CSV_PATH}. Run ml_engine/generate_dataset.py first.")
-            return
-
+        today = date.today()
         records_to_insert = []
-        with open(CSV_PATH, mode="r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            all_rows = list(reader)
+        days_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-        # Take the most recent rows up to limit_records
-        selected_rows = all_rows[-limit_records:]
+        for i in range(num_days, -1, -1):
+            cur_date = today - timedelta(days=i)
+            day_name = days_names[cur_date.weekday()]
 
-        for row in selected_rows:
-            rec_date = datetime.strptime(row["record_date"], "%Y-%m-%d").date()
-            prep = int(row["prepared_meals"])
-            consumed = int(row["consumed_meals"])
-            wasted = int(row["wasted_meals"])
-            waste_pct = float(row["waste_percentage"])
+            for meal_type, default_menu in [
+                ("Breakfast", "Idli, Vada, Sambar & Chutney"),
+                ("Lunch", "Dal Makhani, Rice, Roti & Salad"),
+                ("Dinner", "Mixed Veg, Dal Tadka, Rice & Roti"),
+            ]:
+                if i == 0 and meal_type == "Dinner":
+                    prep = 450
+                    cons = None
+                else:
+                    prep = 420 + (cur_date.day * 3) % 80
+                    cons = prep - (15 + (cur_date.day * 2) % 35)
 
-            rec = MessRecord(
-                record_date=rec_date,
-                day_of_week=row["day_of_week"],
-                meal_type=row["meal_type"],
-                menu_name=row["menu_name"],
-                attendance=int(row["attendance"]),
-                prepared_meals=prep,
-                consumed_meals=consumed,
-                wasted_meals=wasted,
-                waste_percentage=waste_pct,
-                notes=f"Historical log for {row['menu_category']}"
-            )
-            records_to_insert.append(rec)
+                rec = MessRecord(
+                    record_date=cur_date,
+                    day_of_week=day_name,
+                    meal_type=meal_type,
+                    menu_name=default_menu,
+                    attendance=prep,
+                    prepared_meals=prep,
+                    consumed_meals=cons,
+                    notes="Regular mess dining." if cons else "Dinner currently in progress."
+                )
+                rec.calculate_leftovers()
+                records_to_insert.append(rec)
 
         db.session.bulk_save_objects(records_to_insert)
         db.session.commit()
-        print(f"✅ Successfully inserted {len(records_to_insert)} mess records into database.")
-
-        # Also create initial surplus advisories for records with noticeable surplus (> 25 meals)
-        surplus_records = MessRecord.query.filter(MessRecord.wasted_meals >= 25).order_by(MessRecord.record_date.desc()).limit(15).all()
-        for s_rec in surplus_records:
-            exists = SurplusAdvisory.query.filter_by(record_id=s_rec.id).first()
-            if not exists:
-                advisory = SurplusAdvisory(
-                    record_id=s_rec.id,
-                    date=s_rec.record_date,
-                    meal_type=s_rec.meal_type,
-                    surplus_quantity=s_rec.wasted_meals,
-                    status="Pending Review",
-                    food_safety_verified=False,
-                    advisory_notes=f"High surplus observed for {s_rec.menu_name}. Verify food temperature & hygiene before donation."
-                )
-                db.session.add(advisory)
-
-        db.session.commit()
-        print(f"✅ Created initial surplus advisories for {len(surplus_records)} high-surplus records.")
-
-
-if __name__ == "__main__":
-    seed_database()
+        print(f"[OK] Successfully inserted {len(records_to_insert)} sample mess records.")

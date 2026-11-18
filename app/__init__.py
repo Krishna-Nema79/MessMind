@@ -1,10 +1,8 @@
 """
 =============================================================================
-AI-POWERED FOOD WASTE PREDICTION SYSTEM
+MESSMIND - Daily Mess Meal Logging Portal
 Module: app/__init__.py
-Description: Flask Application Factory with Strict Dual-Database Governance,
-Production Fail-Fast Enforcement, Controlled Development Fallback,
-SQLite foreign key pragma listener, CSRF Protection, and Safe Error Handlers.
+Description: Flask Application Factory with CSRF Protection and Error Handlers.
 =============================================================================
 """
 
@@ -19,7 +17,7 @@ from app.config import Config, BASE_DIR
 from app.extensions import db, migrate
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("FoodWasteAI")
+logger = logging.getLogger("MessMind")
 
 
 @event.listens_for(Engine, "connect")
@@ -39,7 +37,7 @@ def generate_csrf_token():
 
 
 def create_app(config_class=Config):
-    """Application factory for the AI Food Waste Prediction System."""
+    """Application factory for MessMind daily mess portal."""
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_class)
 
@@ -61,7 +59,7 @@ def create_app(config_class=Config):
 
     # Strict Startup Verification
     with flask_app.app_context():
-        from app.models.mess_record import MessRecord, PredictionLog, SurplusAdvisory
+        from app.models.mess_record import MessRecord
 
         is_mysql = ("mysql" in target_uri.lower()) or (target_type == "mysql")
         is_production = flask_app.config.get("IS_PRODUCTION", False)
